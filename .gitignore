@@ -224,3 +224,4 @@ __marimo__/
 
 # Frontend build artifacts
 frontend/node_modules/
+frontend/tsconfig.tsbuildinfo
