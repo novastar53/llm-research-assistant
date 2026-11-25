@@ -122,6 +122,19 @@ body {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
+.exp-node__commit {
+  margin-top: 4px;
+  padding: 1px 5px;
+  display: inline-block;
+  border-radius: 4px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  cursor: help;
+}
+
 button {
   font: inherit;
   border: 1px solid var(--border);

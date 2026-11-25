@@ -5,7 +5,10 @@ import { useMemo } from 'react'
 import { layoutGraph } from './layout'
 import type { Graph } from './types'
 
-export type ExperimentFlowNode = Node<{ title: string; expId: string }, 'experiment'>
+export type ExperimentFlowNode = Node<
+  { title: string; expId: string; commit: string },
+  'experiment'
+>
 
 function ExperimentNode({ data, selected }: NodeProps<ExperimentFlowNode>) {
   return (
@@ -13,6 +16,9 @@ function ExperimentNode({ data, selected }: NodeProps<ExperimentFlowNode>) {
       <Handle type="target" position={Position.Top} />
       <div className="exp-node__title">{data.title}</div>
       <div className="exp-node__id">{data.expId}</div>
+      <div className="exp-node__commit" title={`commit ${data.commit}`}>
+        {data.commit.slice(0, 12)}
+      </div>
       <Handle type="source" position={Position.Bottom} />
     </div>
   )
@@ -35,7 +41,11 @@ export function GraphPane({ graph, selectedId, onSelect }: GraphPaneProps) {
         id: position.id,
         type: 'experiment' as const,
         position: { x: position.x, y: position.y },
-        data: { title: node?.manifest.title ?? position.id, expId: position.id },
+        data: {
+          title: node?.manifest.title ?? position.id,
+          expId: position.id,
+          commit: node?.commit ?? '',
+        },
         selected: position.id === selectedId,
       }
     })
