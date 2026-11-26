@@ -77,7 +77,7 @@ describe('layoutGraph', () => {
     expect(pos.get('a-child')!.x).toBe(pos.get('right')!.x)
   })
 
-  it('balances a child of two parents against single-parent siblings', () => {
+  it('keeps a child of two parents below both parents', () => {
     // alphabetical order would put 'both' first; its barycenter (mean of p1,
     // p2 = 0.5) must place it after 'left-only' (barycenter 0)
     const pos = positions(
@@ -87,7 +87,18 @@ describe('layoutGraph', () => {
         ['p2', 'both'],
       ]),
     )
-    expect(pos.get('left-only')!.x).toBeLessThan(pos.get('both')!.x)
+    expect(pos.get('both')!.y).toBeGreaterThan(pos.get('p1')!.y)
+    expect(pos.get('both')!.y).toBeGreaterThan(pos.get('p2')!.y)
+  })
+
+  it('keeps sibling subtrees separate instead of placing a child under an unrelated parent', () => {
+    const pos = positions(makeGraph([
+      ['root', 'variance'], ['root', 'ucb'],
+      ['variance', 'diagnostics'], ['variance', 'joint'],
+      ['ucb', 'deployment'],
+    ]))
+    expect(pos.get('joint')!.x).toBeGreaterThan(pos.get('ucb')!.x)
+    expect(pos.get('deployment')!.x).toBeLessThan(pos.get('joint')!.x)
   })
 
   it('places a child under its parent even when another root is leftmost', () => {
