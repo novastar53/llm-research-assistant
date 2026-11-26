@@ -66,6 +66,19 @@ export const api = {
       ]),
       signal,
     ),
+  /** Same-origin URL serving a committed raster image inline. */
+  rawFileUrl: (id: string, path: string, commit: string | null): string =>
+    withQuery(`/api/experiments/${encodeURIComponent(id)}/file/raw`, [
+      revisionQuery(commit),
+      `path=${encodeURIComponent(path)}`,
+    ]),
+}
+
+/** Raster formats the backend serves inline (SVG is never served). */
+const IMAGE_PATTERN = /\.(png|jpe?g|gif|webp)$/i
+
+export function isImagePath(path: string): boolean {
+  return IMAGE_PATTERN.test(path)
 }
 
 export { toApiError }

@@ -44,6 +44,7 @@ EXPERIMENT_PREFIX = "refs/heads/experiments/"  #: Reserved experiment namespace.
 MANIFEST_PATH = "experiment.json"  #: Required manifest path, repo-relative.
 MAX_MANIFEST_BYTES = 256 * 1024  #: Manifests larger than this are invalid.
 MAX_PREVIEW_BYTES = 256 * 1024  #: Text previews larger than this are rejected.
+MAX_BINARY_PREVIEW_BYTES = 20 * 1024 * 1024  #: Inline image previews: 20 MiB.
 MAX_LISTING_ENTRIES = 10_000  #: Recursive listings larger than this are rejected.
 
 
@@ -237,6 +238,32 @@ class ResearchRepository:
                 f"{path} is not valid UTF-8; binary files have no preview"
             ) from exc
         return TextFile(path=path, commit=resolved, content=text)
+
+    def read_binary(
+        self, experiment_id: str, path: str, *, commit: str | None = None
+    ) -> bytes:
+        """Read a committed regular file's raw bytes (inline image preview).
+
+        Same path/revision validation as :meth:`read_text`; the HTTP layer
+        restricts which media types are actually served inline.
+        """
+        resolved = self.resolve_revision(experiment_id, commit=commit)
+        self._check_repo_path(path)
+        entry = self._git.ls_tree_entry(resolved, path)
+        if entry is None:
+            raise NotFoundError(f"no such committed file: {path}")
+        mode, kind, blob_oid, size = entry
+        if kind == "tree":
+            raise NotFoundError(f"{path} is a directory, not a file")
+        if kind != "blob" or mode == "120000":
+            what = "a symlink" if mode == "120000" else "a submodule entry"
+            raise UnsupportedContentError(f"{path} is {what}; only regular files are served")
+        if size > MAX_BINARY_PREVIEW_BYTES:
+            raise FileTooLargeError(
+                f"{path} is {size} bytes; the inline preview limit is "
+                f"{MAX_BINARY_PREVIEW_BYTES}"
+            )
+        return self._git.cat_file_bytes("blob", blob_oid)
 
     @staticmethod
     def _file_kind(mode: str, kind: str, path: str) -> FileKind:

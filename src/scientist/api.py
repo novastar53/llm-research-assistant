@@ -12,12 +12,12 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from .errors import ScientistError
+from .errors import ScientistError, UnsupportedContentError
 from .models import Experiment, ExperimentGraph, FileListing, TextFile
 from .repository import ResearchRepository
 
@@ -124,6 +124,34 @@ def create_app(repo_path: str | Path, *, static_dir: str | Path | None = None) -
     @app.get("/api/experiments/{experiment_id}/file", response_model=TextFile)
     def read_file(experiment_id: str, path: str, commit: str | None = None) -> TextFile:
         return repo.read_text(experiment_id, path, commit=commit)
+
+    #: Raster formats served inline. SVG is deliberately absent: it can carry
+    #: script and must never be served from the API origin.
+    _IMAGE_MEDIA_TYPES = {
+        ".png": "image/png",
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".gif": "image/gif",
+        ".webp": "image/webp",
+    }
+
+    @app.get("/api/experiments/{experiment_id}/file/raw")
+    def read_file_raw(experiment_id: str, path: str, commit: str | None = None) -> Response:
+        media_type = _IMAGE_MEDIA_TYPES.get(Path(path).suffix.lower())
+        if media_type is None:
+            raise UnsupportedContentError(
+                f"inline preview supports PNG, JPEG, GIF and WebP only; "
+                f"{Path(path).suffix or 'this file'} is not served inline"
+            )
+        data = repo.read_binary(experiment_id, path, commit=commit)
+        return Response(
+            content=data,
+            media_type=media_type,
+            headers={
+                "X-Content-Type-Options": "nosniff",
+                "Content-Security-Policy": "default-src 'none'",
+            },
+        )
 
     # Mount last: API routes above always take precedence over the SPA. A
     # catch-all mount registered earlier would swallow /api/* requests.

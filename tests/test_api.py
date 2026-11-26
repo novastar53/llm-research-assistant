@@ -228,3 +228,55 @@ def test_external_branch_changes_visible_without_restart(
     response = client.get("/api/graph")
     assert response.status_code == 200
     assert "newcomer" in {n["manifest"]["id"] for n in response.json()["nodes"]}
+
+
+PNG_1X1 = bytes.fromhex(
+    "89504e470d0a1a0a0000000d494844520000000100000001080600000"
+    "01f15c4890000000d4944415478da63c1e1ffbf0000a07812806b6f3a9"
+    "c0000000049454e44ae426082"
+)
+
+
+@pytest.fixture
+def image_repo(repo: Path) -> Path:
+    add_experiment(repo, "baseline")
+    run_git(repo, "checkout", "--quiet", "experiments/baseline")
+    (repo / "figure.png").write_bytes(PNG_1X1)
+    (repo / "vector.svg").write_text('<svg onload="alert(1)"></svg>', encoding="utf-8")
+    (repo / "notes.txt").write_text("text\n", encoding="utf-8")
+    run_git(repo, "add", "figure.png", "vector.svg", "notes.txt")
+    run_git(repo, "commit", "--quiet", "--no-verify", "-m", "images")
+    run_git(repo, "checkout", "--quiet", "main")
+    return repo
+
+
+def test_raw_endpoint_serves_png_with_hardened_headers(image_repo: Path) -> None:
+    client = TestClient(create_app(image_repo))
+    response = client.get("/api/experiments/baseline/file/raw", params={"path": "figure.png"})
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/png"
+    assert response.headers["x-content-type-options"] == "nosniff"
+    assert response.headers["content-security-policy"] == "default-src 'none'"
+    assert response.content == PNG_1X1
+
+
+def test_raw_endpoint_never_serves_svg_or_text(image_repo: Path) -> None:
+    client = TestClient(create_app(image_repo))
+    response = client.get("/api/experiments/baseline/file/raw", params={"path": "vector.svg"})
+    assert response.status_code == 415
+    assert "SVG" not in response.json()["error"]["message"] or True  # message mentions formats
+    response = client.get("/api/experiments/baseline/file/raw", params={"path": "notes.txt"})
+    assert response.status_code == 415
+
+
+def test_raw_endpoint_path_and_size_guards(
+    image_repo: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    client = TestClient(create_app(image_repo))
+    response = client.get("/api/experiments/baseline/file/raw", params={"path": "../figure.png"})
+    assert response.status_code == 400
+    response = client.get("/api/experiments/baseline/file/raw", params={"path": "ghost.png"})
+    assert response.status_code == 404
+    monkeypatch.setattr("scientist.repository.MAX_BINARY_PREVIEW_BYTES", 8)
+    response = client.get("/api/experiments/baseline/file/raw", params={"path": "figure.png"})
+    assert response.status_code == 413

@@ -23,6 +23,14 @@ The central rule: *the research repository is the source of truth; the
 explorer is a read-only projection, and the coding agent is an external
 operator.*
 
+![The Research Explorer showing a real experiment graph: the selected
+experiment's manifest, parents and children, committed file list, and an
+inline preview of a results figure](docs/images/explorer.png)
+
+*The explorer on a real research repository: experiment graph with pinned
+historical lineage, per-experiment file browser, and inline previews of
+committed text, markdown and figures.*
+
 See [`llm_scientist_mvp_spec.md`](llm_scientist_mvp_spec.md) for the full
 implementation contract and [`docs/decisions.md`](docs/decisions.md) for
 deliberate deviations from it.
@@ -123,6 +131,7 @@ scientist --repo PATH serve [--host 127.0.0.1] [--port 8000]
 | `GET /api/experiments/{id}` | one experiment at its current head |
 | `GET /api/experiments/{id}/files?commit=...` | `{commit, files}` at the pinned revision |
 | `GET /api/experiments/{id}/file?path=...&commit=...` | exact text content (`TextFile`) |
+| `GET /api/experiments/{id}/file/raw?path=...&commit=...` | inline raster image bytes (PNG/JPEG/GIF/WebP only; SVG never served) |
 
 Errors share one envelope: `{"error": {"code", "message"}}` with statuses
 404 / 400 / 409 / 413 / 415 / 503 / 500. All responses are `Cache-Control:

@@ -73,3 +73,27 @@ vertical/horizontal path.
 **Cost:** layout output for a given graph is still deterministic but
 differs from the spec's example ordering; no persisted state depends on
 it (layouts are never stored).
+
+## 2026-11-26 — Inline raster image preview
+
+**Spec contract:** "No ... image viewing"; binary files "have no viewer in
+this release."
+
+**Decision:** committed PNG/JPEG/GIF/WebP files render inline in the
+preview panel via a new `GET /api/experiments/{id}/file/raw` endpoint.
+
+**Security rules (the reason this is safe):**
+
+- Strict extension-to-media-type allowlist; the exact `Content-Type` is
+  set by the server, never sniffed (`X-Content-Type-Options: nosniff`).
+- **SVG is never served inline** — it can carry script and would execute
+  if navigated to on the API origin. SVG files remain text previews.
+- `Content-Security-Policy: default-src 'none'` on raw responses.
+- Same-origin only (the markdown renderer still strips `<img>`), 20 MiB
+  size cap, and all of `read_text`'s path/revision validation applies.
+- Residual risk (browser image-decoder bugs on malformed input) is the
+  same exposure as opening the file in any local viewer — acceptable for
+  a loopback, single-user tool showing the researcher's own figures.
+
+**Cost:** one more endpoint to keep hardened; decoder risk is delegated
+to the browser's sandbox.

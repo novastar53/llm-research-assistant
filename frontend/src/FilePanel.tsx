@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
-import { api, isAbortError, toApiError } from './api'
+import { api, isAbortError, isImagePath, toApiError } from './api'
 import { isMarkdownPath, renderMarkdown } from './markdown'
 import type { Revision } from './state'
 import type { ApiError, FileEntry, FileListing, TextFile } from './types'
@@ -22,6 +22,7 @@ export function FilePanel({ experimentId, revision }: FilePanelProps) {
   const [listing, setListing] = useState<FileListing | null>(null)
   const [listingError, setListingError] = useState<ApiError | null>(null)
   const [preview, setPreview] = useState<TextFile | null>(null)
+  const [imagePreview, setImagePreview] = useState<{ path: string; url: string } | null>(null)
   const [previewError, setPreviewError] = useState<ApiError | null>(null)
   const previewAbort = useRef<AbortController | null>(null)
 
@@ -30,6 +31,7 @@ export function FilePanel({ experimentId, revision }: FilePanelProps) {
     setListing(null)
     setListingError(null)
     setPreview(null)
+    setImagePreview(null)
     setPreviewError(null)
     api
       .files(experimentId, commit, controller.signal)
@@ -47,6 +49,7 @@ export function FilePanel({ experimentId, revision }: FilePanelProps) {
   const openFile = (entry: FileEntry) => {
     if (entry.kind !== 'file') {
       setPreview(null)
+      setImagePreview(null)
       setPreviewError({
         code: 'unsupported_content',
         message: `${entry.path} is a ${entry.kind}; only regular files can be previewed`,
@@ -54,10 +57,19 @@ export function FilePanel({ experimentId, revision }: FilePanelProps) {
       return
     }
     previewAbort.current?.abort()
+    setPreview(null)
+    setImagePreview(null)
+    setPreviewError(null)
+    if (isImagePath(entry.path)) {
+      // the browser fetches the bytes from the same-origin raw endpoint
+      setImagePreview({
+        path: entry.path,
+        url: api.rawFileUrl(experimentId, entry.path, commit),
+      })
+      return
+    }
     const controller = new AbortController()
     previewAbort.current = controller
-    setPreview(null)
-    setPreviewError(null)
     api
       .file(experimentId, entry.path, commit, controller.signal)
       .then(setPreview)
@@ -99,7 +111,29 @@ export function FilePanel({ experimentId, revision }: FilePanelProps) {
           [{previewError.code}] {previewError.message}
         </p>
       )}
-      {!preview && !previewError && <p className="muted">Select a file to view its content.</p>}
+      {!preview && !imagePreview && !previewError && (
+        <p className="muted">Select a file to view its content.</p>
+      )}
+      {imagePreview && (
+        <>
+          <p className="muted mono">
+            {imagePreview.path} @ {commit ? commit.slice(0, 12) : 'HEAD'}
+          </p>
+          <div className="image-preview">
+            <img
+              src={imagePreview.url}
+              alt={imagePreview.path}
+              onError={() => {
+                setImagePreview(null)
+                setPreviewError({
+                  code: 'preview_failed',
+                  message: `could not load ${imagePreview.path} (unsupported format, missing, or too large)`,
+                })
+              }}
+            />
+          </div>
+        </>
+      )}
       {preview && (
         <>
           <p className="muted mono">

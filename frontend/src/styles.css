@@ -463,3 +463,19 @@ button:hover {
   background: var(--muted);
   border-color: var(--panel);
 }
+
+/* Inline image preview (raster formats only; served same-origin). */
+.image-preview {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  padding: 8px;
+  max-height: 480px;
+  overflow: auto;
+}
+
+.image-preview img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
