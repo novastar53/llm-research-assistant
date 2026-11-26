@@ -92,6 +92,17 @@ describe('selection and revision state', () => {
     expect(loaded.revision).toEqual({ kind: 'head' })
   })
 
+  it('deselect clears the selection and any pin', () => {
+    const pinned = reducer(initialState, {
+      type: 'select_pinned',
+      id: 'baseline',
+      commit: 'a'.repeat(40),
+    })
+    const state = reducer(pinned, { type: 'deselect' })
+    expect(state.selectedId).toBeNull()
+    expect(state.revision).toEqual({ kind: 'head' })
+  })
+
   it('a failed load with no prior graph is an error state, not stale', () => {
     const state = reducer(initialState, {
       type: 'graph_failed',

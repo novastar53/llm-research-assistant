@@ -96,15 +96,20 @@ body {
   min-width: 0;
 }
 
-/* React Flow experiment nodes */
+/* React Flow experiment nodes: fixed 180x144 (5:4) so the layered layout
+   can guarantee clearance; text clamps instead of resizing the card. */
 .exp-node {
+  position: relative;
+  width: 180px;
+  height: 144px;
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 6px;
   padding: 8px 12px;
-  min-width: 140px;
-  box-shadow: 0 1px 2px rgb(0 0 0 / 8%);
 }
+
+/* no box-shadow on tiles: the drop shadow haze fills the inter-row channel
+   and visually swallows the 1px edge lines passing through it. */
 
 .exp-node--selected {
   border-color: var(--accent);
@@ -114,23 +119,34 @@ body {
 .exp-node__title {
   font-weight: 600;
   font-size: 0.9rem;
+  line-height: 1.25;
+  /* full card width; the hash chip moved to the bottom row, so no corner
+     needs to be reserved here */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .exp-node__id {
   color: var(--muted);
   font-size: 0.75rem;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .exp-node__commit {
-  margin-top: 4px;
-  padding: 1px 5px;
-  display: inline-block;
+  position: absolute;
+  bottom: 6px;
+  right: 8px;
+  padding: 0 4px;
   border-radius: 4px;
   background: var(--bg);
   border: 1px solid var(--border);
   color: var(--muted);
-  font-size: 0.72rem;
+  font-size: 0.62rem;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   cursor: help;
 }
@@ -191,6 +207,28 @@ button:hover {
 .inspector h2 {
   margin: 4px 0;
   font-size: 1.1rem;
+}
+
+.inspector__header {
+  position: relative;
+}
+
+.inspector__close {
+  position: absolute;
+  top: 0;
+  right: 0;
+  border: none;
+  background: none;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: var(--muted);
+  padding: 2px 6px;
+  cursor: pointer;
+}
+
+.inspector__close:hover {
+  color: var(--text);
+  border: none;
 }
 
 .inspector h3,
@@ -262,6 +300,105 @@ button:hover {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 0.82rem;
   line-height: 1.45;
+}
+
+/* Sanitized markdown rendering (see markdown.ts for the security model). */
+.markdown-preview {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 14px;
+  max-height: 420px;
+  overflow: auto;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  overflow-wrap: break-word;
+}
+
+.markdown-preview h1,
+.markdown-preview h2,
+.markdown-preview h3 {
+  margin: 0.9em 0 0.4em;
+  line-height: 1.25;
+}
+
+.markdown-preview h1 {
+  font-size: 1.25rem;
+}
+
+.markdown-preview h2 {
+  font-size: 1.1rem;
+}
+
+.markdown-preview h3 {
+  font-size: 1rem;
+}
+
+.markdown-preview p,
+.markdown-preview ul,
+.markdown-preview ol {
+  margin: 0.5em 0;
+}
+
+.markdown-preview ul,
+.markdown-preview ol {
+  padding-left: 1.5em;
+}
+
+.markdown-preview code {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0 4px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.82em;
+}
+
+.markdown-preview pre {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px;
+  overflow-x: auto;
+}
+
+.markdown-preview pre code {
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.markdown-preview table {
+  border-collapse: collapse;
+  margin: 0.6em 0;
+  font-size: 0.85em;
+}
+
+.markdown-preview th,
+.markdown-preview td {
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+  text-align: left;
+}
+
+.markdown-preview th {
+  background: var(--panel);
+}
+
+.markdown-preview blockquote {
+  margin: 0.6em 0;
+  padding: 2px 12px;
+  border-left: 3px solid var(--border);
+  color: var(--muted);
+}
+
+.markdown-preview a {
+  color: var(--accent);
+}
+
+.markdown-preview hr {
+  border: none;
+  border-top: 1px solid var(--border);
 }
 
 /* Smaller screens: simple stacked layout. */

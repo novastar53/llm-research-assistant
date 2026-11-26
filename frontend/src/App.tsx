@@ -79,23 +79,20 @@ export default function App() {
             selectedId={state.selectedId}
             onSelect={(id) => dispatch({ type: 'select', id })}
           />
-          <div className="app__side">
-            {selected ? (
-              <>
-                <Inspector
-                  graph={state.graph}
-                  node={selected}
-                  revision={state.revision}
-                  onSelectExperiment={(id) => dispatch({ type: 'select', id })}
-                  onSelectParent={(id, commit) => dispatch({ type: 'select_pinned', id, commit })}
-                  onReturnToHead={() => dispatch({ type: 'return_to_head' })}
-                />
-                <FilePanel experimentId={selected.manifest.id} revision={state.revision} />
-              </>
-            ) : (
-              <p className="muted app__hint">Select an experiment node to inspect it.</p>
-            )}
-          </div>
+          {selected && (
+            <div className="app__side">
+              <Inspector
+                graph={state.graph}
+                node={selected}
+                revision={state.revision}
+                onSelectExperiment={(id) => dispatch({ type: 'select', id })}
+                onSelectParent={(id, commit) => dispatch({ type: 'select_pinned', id, commit })}
+                onReturnToHead={() => dispatch({ type: 'return_to_head' })}
+                onClose={() => dispatch({ type: 'deselect' })}
+              />
+              <FilePanel experimentId={selected.manifest.id} revision={state.revision} />
+            </div>
+          )}
         </main>
       )}
     </div>

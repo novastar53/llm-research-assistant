@@ -68,6 +68,28 @@ describe('layoutGraph', () => {
     expect(pos.get('other')!.y).toBe(V_GAP)
   })
 
+  it('orders children under their parents (barycenter), not alphabetically', () => {
+    // two side-by-side roots; 'a-child' would sort first alphabetically but
+    // belongs to the right-hand parent and must stay under it
+    const pos = positions(makeGraph([['left', 'z-child'], ['right', 'a-child']]))
+    expect(pos.get('left')!.x).toBeLessThan(pos.get('right')!.x)
+    expect(pos.get('z-child')!.x).toBe(pos.get('left')!.x)
+    expect(pos.get('a-child')!.x).toBe(pos.get('right')!.x)
+  })
+
+  it('balances a child of two parents against single-parent siblings', () => {
+    // alphabetical order would put 'both' first; its barycenter (mean of p1,
+    // p2 = 0.5) must place it after 'left-only' (barycenter 0)
+    const pos = positions(
+      makeGraph([
+        ['p1', 'both'],
+        ['p1', 'left-only'],
+        ['p2', 'both'],
+      ]),
+    )
+    expect(pos.get('left-only')!.x).toBeLessThan(pos.get('both')!.x)
+  })
+
   it('treats disconnected nodes as roots', () => {
     const pos = positions(makeGraph([], ['solo1', 'solo2']))
     expect(pos.get('solo1')).toMatchObject({ depth: 0, y: 0 })

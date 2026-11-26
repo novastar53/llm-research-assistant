@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 
 import { api, isAbortError, toApiError } from './api'
+import { isMarkdownPath, renderMarkdown } from './markdown'
 import type { Revision } from './state'
 import type { ApiError, FileEntry, FileListing, TextFile } from './types'
 
@@ -104,7 +105,16 @@ export function FilePanel({ experimentId, revision }: FilePanelProps) {
           <p className="muted mono">
             {preview.path} @ {preview.commit.slice(0, 12)}
           </p>
-          <pre className="file-preview">{preview.content}</pre>
+          {isMarkdownPath(preview.path) ? (
+            // HTML is produced by markdown-it (raw source HTML escaped) and
+            // sanitized by DOMPurify before injection; see markdown.ts.
+            <div
+              className="markdown-preview"
+              dangerouslySetInnerHTML={{ __html: renderMarkdown(preview.content) }}
+            />
+          ) : (
+            <pre className="file-preview">{preview.content}</pre>
+          )}
         </>
       )}
     </section>

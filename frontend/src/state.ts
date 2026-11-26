@@ -27,6 +27,7 @@ export type Action =
   | { type: 'select'; id: string }
   | { type: 'select_pinned'; id: string; commit: string }
   | { type: 'return_to_head' }
+  | { type: 'deselect' }
 
 /**
  * Selection/revision state machine (spec section 6, "Required behavior").
@@ -52,6 +53,8 @@ export function reducer(state: ExplorerState, action: Action): ExplorerState {
       }
     case 'return_to_head':
       return { ...state, revision: { kind: 'head' } }
+    case 'deselect':
+      return { ...state, selectedId: null, revision: { kind: 'head' } }
     case 'graph_loaded': {
       const stillThere = action.graph.nodes.some(
         (node) => node.manifest.id === state.selectedId,

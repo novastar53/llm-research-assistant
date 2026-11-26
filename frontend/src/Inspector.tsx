@@ -15,6 +15,7 @@ interface InspectorProps {
   onSelectExperiment: (id: string) => void
   onSelectParent: (id: string, pinnedCommit: string) => void
   onReturnToHead: () => void
+  onClose: () => void
 }
 
 /**
@@ -29,6 +30,7 @@ export function Inspector({
   onSelectExperiment,
   onSelectParent,
   onReturnToHead,
+  onClose,
 }: InspectorProps) {
   const pinnedCommit = revision.kind === 'pinned' ? revision.commit : null
   const [historicalManifest, setHistoricalManifest] = useState<ExperimentManifest | null>(null)
@@ -61,6 +63,9 @@ export function Inspector({
   return (
     <section className="inspector">
       <header className="inspector__header">
+        <button className="inspector__close" title="Close inspector" onClick={onClose}>
+          ×
+        </button>
         <h2>{manifest?.title ?? node.manifest.title}</h2>
         <div className="inspector__meta">
           <span className="mono">{node.manifest.id}</span>

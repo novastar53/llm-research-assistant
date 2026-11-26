@@ -68,8 +68,9 @@ def create_app(repo_path: str | Path, *, static_dir: str | Path | None = None) -
     @app.middleware("http")
     async def no_store(request: Request, call_next: Any) -> Any:
         response = await call_next(request)
-        if request.url.path.startswith("/api"):
-            response.headers["Cache-Control"] = "no-store"
+        # Spec requires no-store for /api; static assets get it too so a
+        # browser can never show a stale SPA build after a rebuild.
+        response.headers["Cache-Control"] = "no-store"
         return response
 
     @app.exception_handler(ScientistError)

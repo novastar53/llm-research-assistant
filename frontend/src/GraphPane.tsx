@@ -57,8 +57,18 @@ export function GraphPane({ graph, selectedId, onSelect }: GraphPaneProps) {
         id: `${edge.source}->${edge.target}`,
         source: edge.source,
         target: edge.target,
-        label: edge.relationship,
-        markerEnd: { type: MarkerType.ArrowClosed },
+        // no edge labels: on short vertical drops they render inside the
+        // ~20px inter-card gap and read as missing, which looks inconsistent
+        // next to diagonal edges. Relationships are shown in the inspector
+        // (parents/children lists) and in every manifest instead.
+        type: 'smoothstep' as const,
+        // tight corner radius: the default ~10px arcs graze the tile corners
+        // in the ~10px inter-row channel and read as lines diving behind cards
+        pathOptions: { borderRadius: 3 },
+        // arrowheads only get explicit styling: with defaults they inherit
+        // the faint 1px stroke color and read as "no arrowhead"; stroke and
+        // routing stay untouched.
+        markerEnd: { type: MarkerType.ArrowClosed, color: '#374151', width: 18, height: 18 },
       })),
     [graph],
   )
