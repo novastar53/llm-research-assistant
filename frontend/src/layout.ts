@@ -16,12 +16,12 @@ export const V_GAP = 165
  * Deterministic topological-layer layout (spec section 6): roots at the top,
  * each child one layer below its deepest parent.
  *
- * Within a layer, nodes are ordered by barycenter — the mean column of their
- * already-placed parents — with ID as tie-break (see docs/decisions.md; the
- * spec suggested plain ID ordering, which makes dense layers unreadable
- * because edges from scattered parents cross everywhere). A single top-down
- * pass suffices because every parent's depth is strictly smaller than its
- * child's. Pure and stable for a given graph.
+ * Within a layer, nodes are ordered by barycenter — the mean x of their
+ * already-placed parents — with ID as tie-break (see docs/decisions.md).
+ * Coordinates then place each child at that barycenter, resolved left-to-right
+ * with a minimum H_GAP separation, so a child renders beneath its parent
+ * rather than in an unrelated ordinal column (which read as a false parent).
+ * Pure and stable for a given graph.
  */
 export function layoutGraph(graph: Graph): PositionedNode[] {
   const ids = graph.nodes.map((node) => node.manifest.id).sort()
@@ -49,26 +49,36 @@ export function layoutGraph(graph: Graph): PositionedNode[] {
     layers.set(depthOf(id), layer)
   }
 
-  const columnOf = new Map<string, number>()
+  const xOf = new Map<string, number>()
   const positioned: PositionedNode[] = []
   for (const [depth, layer] of [...layers.entries()].sort((a, b) => a[0] - b[0])) {
-    if (depth > 0) {
-      const barycenter = (id: string): number => {
-        const parents = parentsOf.get(id) ?? []
-        const placed = parents.filter((parent) => columnOf.has(parent))
-        if (placed.length === 0) return Number.POSITIVE_INFINITY
-        return placed.reduce((sum, parent) => sum + columnOf.get(parent)!, 0) / placed.length
-      }
+    // desired x: roots spread evenly by ID; children aim for their parents'
+    // mean x (Infinity when no parent is placed yet, i.e. never for depth>0)
+    const desiredX = (id: string): number => {
+      const parents = parentsOf.get(id) ?? []
+      const placed = parents.filter((parent) => xOf.has(parent))
+      if (placed.length === 0) return Number.POSITIVE_INFINITY
+      return placed.reduce((sum, parent) => sum + xOf.get(parent)!, 0) / placed.length
+    }
+    if (depth === 0) {
+      layer.forEach((id, column) => xOf.set(id, column * H_GAP))
+    } else {
       layer.sort((a, b) => {
-        const byBarycenter = barycenter(a) - barycenter(b)
-        if (byBarycenter !== 0) return byBarycenter
+        const byDesired = desiredX(a) - desiredX(b)
+        if (byDesired !== 0 && !Number.isNaN(byDesired)) return byDesired
         return a < b ? -1 : a > b ? 1 : 0
       })
+      let previous = -H_GAP
+      for (const id of layer) {
+        const desired = desiredX(id)
+        const x = Number.isFinite(desired) ? Math.max(desired, previous + H_GAP) : previous + H_GAP
+        xOf.set(id, x)
+        previous = x
+      }
     }
-    layer.forEach((id, column) => {
-      columnOf.set(id, column)
-      positioned.push({ id, depth, x: column * H_GAP, y: depth * V_GAP })
-    })
+    for (const id of layer) {
+      positioned.push({ id, depth, x: xOf.get(id)!, y: depth * V_GAP })
+    }
   }
   return positioned
 }

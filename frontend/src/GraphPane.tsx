@@ -29,10 +29,14 @@ const nodeTypes = { experiment: ExperimentNode }
 interface GraphPaneProps {
   graph: Graph
   selectedId: string | null
+  theme: 'dark' | 'light'
   onSelect: (id: string) => void
 }
 
-export function GraphPane({ graph, selectedId, onSelect }: GraphPaneProps) {
+export function GraphPane({ graph, selectedId, theme, onSelect }: GraphPaneProps) {
+  // dark arrowheads on a dark canvas would vanish; theme the marker only
+  const arrowColor = theme === 'dark' ? '#94a3b8' : '#374151'
+  const dotColor = theme === 'dark' ? '#39404e' : '#c9cdd4'
   const nodes = useMemo<ExperimentFlowNode[]>(() => {
     const positioned = layoutGraph(graph)
     return positioned.map((position) => {
@@ -68,9 +72,9 @@ export function GraphPane({ graph, selectedId, onSelect }: GraphPaneProps) {
         // arrowheads only get explicit styling: with defaults they inherit
         // the faint 1px stroke color and read as "no arrowhead"; stroke and
         // routing stay untouched.
-        markerEnd: { type: MarkerType.ArrowClosed, color: '#374151', width: 18, height: 18 },
+        markerEnd: { type: MarkerType.ArrowClosed, color: arrowColor, width: 18, height: 18 },
       })),
-    [graph],
+    [graph, arrowColor],
   )
 
   return (
@@ -79,6 +83,7 @@ export function GraphPane({ graph, selectedId, onSelect }: GraphPaneProps) {
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
+        colorMode={theme}
         nodesDraggable={false}
         nodesConnectable={false}
         fitView
@@ -86,7 +91,7 @@ export function GraphPane({ graph, selectedId, onSelect }: GraphPaneProps) {
         maxZoom={2}
         onNodeClick={(_, node) => onSelect(node.id)}
       >
-        <Background gap={24} />
+        <Background gap={24} color={dotColor} />
         <Controls showInteractive={false} />
       </ReactFlow>
     </div>

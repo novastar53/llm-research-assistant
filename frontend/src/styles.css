@@ -1,4 +1,25 @@
+/* Dark is the default theme; light is opt-in via the header toggle.
+   All component colors reference these variables. */
 :root {
+  --bg: #0f1115;
+  --panel: #171a21;
+  --border: #2e3340;
+  --text: #e5e7eb;
+  --muted: #9aa3b2;
+  --accent: #6ea8fe;
+  --accent-soft: rgba(110, 168, 254, 0.16);
+  --danger: #f87171;
+  --warn-bg: #2b2113;
+  --warn-border: #8a6d1f;
+  --warn-text: #f0c36d;
+  color-scheme: dark;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}
+
+:root[data-theme='light'] {
   --bg: #f6f7f9;
   --panel: #ffffff;
   --border: #d9dce1;
@@ -9,10 +30,8 @@
   --danger: #b42318;
   --warn-bg: #fff4e5;
   --warn-border: #f0c36d;
-  font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  color: var(--text);
-  background: var(--bg);
+  --warn-text: #8a5a00;
+  color-scheme: light;
 }
 
 * {
@@ -69,12 +88,25 @@ body {
 }
 
 .app__side {
-  width: 420px;
-  min-width: 320px;
+  width: var(--side-width, 420px);
+  min-width: 280px;
   overflow-y: auto;
   border-left: 1px solid var(--border);
   background: var(--panel);
   padding: 12px 16px;
+}
+
+.app__divider {
+  flex: none;
+  width: 6px;
+  cursor: col-resize;
+  background: transparent;
+  transition: background 120ms;
+}
+
+.app__divider:hover,
+.app__divider:active {
+  background: var(--accent-soft);
 }
 
 .app__error,
@@ -193,13 +225,13 @@ button:hover {
 
 .badge--pinned {
   border-color: var(--warn-border);
-  color: #8a5a00;
+  color: var(--warn-text);
   background: var(--warn-bg);
 }
 
 .badge--stale {
   border-color: var(--warn-border);
-  color: #8a5a00;
+  color: var(--warn-text);
   background: var(--warn-bg);
   margin-left: 0;
 }
@@ -413,6 +445,10 @@ button:hover {
     height: 45vh;
   }
 
+  .app__divider {
+    display: none; /* no horizontal drag in the stacked layout */
+  }
+
   .app__side {
     width: auto;
     min-width: 0;
@@ -420,4 +456,10 @@ button:hover {
     border-top: 1px solid var(--border);
     overflow-y: visible;
   }
+}
+
+/* React Flow: keep edge handles visible on both themes */
+.react-flow__handle {
+  background: var(--muted);
+  border-color: var(--panel);
 }

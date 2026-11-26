@@ -90,6 +90,15 @@ describe('layoutGraph', () => {
     expect(pos.get('left-only')!.x).toBeLessThan(pos.get('both')!.x)
   })
 
+  it('places a child under its parent even when another root is leftmost', () => {
+    // regression: ordinal columns put the child at x=0, directly beneath the
+    // unrelated leftmost root, which read as a false parent
+    const pos = positions(makeGraph([['p-b', 'child']], ['p-a']))
+    expect(pos.get('p-a')!.x).toBe(0)
+    expect(pos.get('child')!.x).toBe(pos.get('p-b')!.x)
+    expect(pos.get('child')!.x).not.toBe(0)
+  })
+
   it('treats disconnected nodes as roots', () => {
     const pos = positions(makeGraph([], ['solo1', 'solo2']))
     expect(pos.get('solo1')).toMatchObject({ depth: 0, y: 0 })
