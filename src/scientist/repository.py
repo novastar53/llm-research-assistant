@@ -239,9 +239,7 @@ class ResearchRepository:
             ) from exc
         return TextFile(path=path, commit=resolved, content=text)
 
-    def read_binary(
-        self, experiment_id: str, path: str, *, commit: str | None = None
-    ) -> bytes:
+    def read_binary(self, experiment_id: str, path: str, *, commit: str | None = None) -> bytes:
         """Read a committed regular file's raw bytes (inline image preview).
 
         Same path/revision validation as :meth:`read_text`; the HTTP layer
@@ -260,8 +258,7 @@ class ResearchRepository:
             raise UnsupportedContentError(f"{path} is {what}; only regular files are served")
         if size > MAX_BINARY_PREVIEW_BYTES:
             raise FileTooLargeError(
-                f"{path} is {size} bytes; the inline preview limit is "
-                f"{MAX_BINARY_PREVIEW_BYTES}"
+                f"{path} is {size} bytes; the inline preview limit is {MAX_BINARY_PREVIEW_BYTES}"
             )
         return self._git.cat_file_bytes("blob", blob_oid)
 
