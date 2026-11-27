@@ -94,12 +94,16 @@ server re-reads Git on every request and never caches.
   must exist, carry a manifest identifying the parent, and be reachable from
   the parent's current tip. Git ancestry between parent and child is *not*
   required — independent validation is legitimate.
-- Experiment branches are append-only: commit and fast-forward freely; do
-  not force-push, rewrite history, reparent or delete. Malformed branches in
-  the reserved namespace fail the whole graph read with an error naming the
-  branch — repair them with ordinary Git.
-- Everything else (code, notebooks, results, notes) is ordinary repository
-  files with no imposed layout.
+- Experiment branches normally advance by commits and fast-forwards. Do not
+  force-push or rewrite history. Renaming, reparenting, or deleting an
+  experiment is exceptional researcher-authorized maintenance: update every
+  affected manifest and pinned child reference atomically, then validate the
+  complete graph with `scientist graph`.
+- The tool itself permits ordinary repository layouts for code, notebooks,
+  results, and notes. When a coding agent works under this repository's
+  [`AGENTS.md`](AGENTS.md), that file defines the required agent workflow,
+  including its one-script-per-experiment and no-inherited-results
+  conventions.
 
 ## CLI
 
@@ -120,8 +124,10 @@ scientist --repo PATH serve [--host 127.0.0.1] [--port 8000]
   `--base-parent` tree unchanged and records `combines` edges to every parent
   at its captured tip. It does **not** merge code — do that afterwards with
   ordinary Git inside the child's worktree, keeping the child's manifest.
-- Mutations never change an existing experiment: they create new branches
-  with a fresh initial commit (whose Git parent is the chosen base).
+- The CLI's `create` / `extend` / `split` / `merge` mutations never change an
+  existing experiment: they create new branches with a fresh initial commit
+  (whose Git parent is the chosen base). Researcher-authorized structural
+  maintenance, such as a rename, uses ordinary Git as described above.
 
 ## HTTP API (read-only)
 
@@ -174,10 +180,12 @@ npm run build                  # emits frontend/dist, served by FastAPI
 
 ## Working with a coding agent
 
-See [`docs/AGENTS.example.md`](docs/AGENTS.example.md) for instruction-file
-guidance: inspect the graph first, create nodes via the CLI, work in
-independent worktrees, commit real work with ordinary Git, integrate
-scientific merges explicitly, and re-read the graph before reporting.
+[`AGENTS.md`](AGENTS.md) is the authoritative workflow for agents working
+with experiment repositories from this checkout. It requires graph-first
+inspection, CLI-created nodes, independent worktrees, clean experiment trees,
+explicit scientific merges, and graph validation before reporting.
+[`docs/AGENTS.example.md`](docs/AGENTS.example.md) remains a generic template
+for researchers who want to adapt similar guidance to a separate repository.
 
 ## Limitations
 
