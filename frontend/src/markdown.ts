@@ -1,5 +1,8 @@
 import DOMPurify from 'dompurify'
+import katex from 'katex'
 import MarkdownIt from 'markdown-it'
+import texmath from 'markdown-it-texmath'
+import 'katex/dist/katex.min.css'
 
 // Repository-controlled markdown is untrusted input. Defense in depth:
 // 1. markdown-it is configured with html: false, so raw HTML in the source
@@ -9,7 +12,16 @@ import MarkdownIt from 'markdown-it'
 //    per the spec), and only safe link protocols survive (DOMPurify blocks
 //    javascript: etc.; markdown-it already validates schemes).
 // 3. External links open in a new tab with noopener.
-const md = new MarkdownIt({ html: false, linkify: true, breaks: false })
+const md = new MarkdownIt({ html: false, linkify: true, breaks: false }).use(texmath, {
+  engine: katex,
+  delimiters: 'dollars',
+  katexOptions: {
+    // Repository Markdown is untrusted.  KaTeX's trust mode would permit
+    // commands that emit arbitrary HTML, so leave it explicitly disabled.
+    trust: false,
+    throwOnError: false,
+  },
+})
 
 DOMPurify.addHook('afterSanitizeAttributes', (node) => {
   if (node.tagName === 'A') {

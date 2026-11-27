@@ -17,6 +17,18 @@ describe('renderMarkdown (untrusted repository content)', () => {
     expect(html).toContain('<code class="language-python">')
   })
 
+  it('renders inline and display LaTeX with KaTeX', () => {
+    const html = renderMarkdown('Inline $x^2$ math.\n\n$$\\frac{a}{b}$$')
+    expect(html).toContain('class="katex"')
+    expect(html).toContain('class="katex-display"')
+    expect(html).not.toContain('$x^2$')
+  })
+
+  it('does not allow trusted KaTeX HTML commands', () => {
+    const html = renderMarkdown('$\\htmlClass{unsafe}{x}$')
+    expect(html).not.toContain('class="unsafe"')
+  })
+
   it('escapes raw HTML in the source', () => {
     const html = renderMarkdown('<script>alert("x")</script>')
     expect(html).not.toContain('<script>') // no live tag...

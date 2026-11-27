@@ -56,6 +56,77 @@ Work in an isolated worktree after creating the branch:
 git -C <research-repo> worktree add <worktree-path> experiments/<id>
 ```
 
+## Required `experiment.md`
+
+Every new experiment must include an `experiment.md` file at its repository
+root. It complements `experiment.json`: the JSON manifest records graph
+lineage, while the Markdown file records the scientific rationale, protocol,
+evidence, and interpretation. Create it when creating the experiment and
+update its status and results after an authorized run.
+
+Use this front matter and section order:
+
+```markdown
+---
+id: exp-<identifier>
+title: <concise study title>
+created: YYYY-MM-DD
+status: planned | running | completed
+tags: [<relevant-topic>, <relevant-method>]
+---
+
+# 1. Motivation
+
+Why is this experiment worth conducting? What previous observation or
+theoretical result motivates it?
+
+# 2. Research question
+
+What specific question are we trying to answer?
+
+# 3. Hypothesis
+
+What do we expect to observe, and why?
+
+# 4. Experimental design
+
+- Environment and algorithms
+- Independent variables
+- Dependent variables
+- Controlled variables
+- Evaluation methodology
+
+# 5. Results
+
+Quantitative results, tables, plots and links to raw data.
+
+# 6. Analysis
+
+Explanation of observed behaviour, unexpected findings, comparisons with
+theoretical predictions and alternative explanations.
+
+# 7. Conclusion
+
+What did we learn? Was the hypothesis supported? What remains uncertain?
+
+# 8. Limitations
+
+Potential confounding factors, methodological weaknesses and limits to
+generalizability.
+
+# 9. Follow-up experiments
+
+New research questions arising from the results.
+
+# 10. References
+
+Relevant papers, theoretical results and previous experiments.
+```
+
+Before results exist, retain all sections and state that the experiment has
+not yet been run; do not present inherited evidence as the child’s result.
+Link committed scripts and artifacts using paths relative to `experiment.md`.
+
 ## Keep each experiment self-explanatory
 
 `extend` copies the parent tree by design. Before committing new work on a

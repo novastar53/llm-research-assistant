@@ -105,6 +105,75 @@ server re-reads Git on every request and never caches.
   including its one-script-per-experiment and no-inherited-results
   conventions.
 
+## Experiment documentation
+
+Under this repository’s agent workflow, every new experiment also includes
+an `experiment.md` file at its root. `experiment.json` remains the strict
+machine-readable lineage manifest; `experiment.md` records the scientific
+motivation, protocol, results, and interpretation. Use this format:
+
+```markdown
+---
+id: exp-<identifier>
+title: <concise study title>
+created: YYYY-MM-DD
+status: planned | running | completed
+tags: [<relevant-topic>, <relevant-method>]
+---
+
+# 1. Motivation
+
+Why is this experiment worth conducting? What previous observation or
+theoretical result motivates it?
+
+# 2. Research question
+
+What specific question are we trying to answer?
+
+# 3. Hypothesis
+
+What do we expect to observe, and why?
+
+# 4. Experimental design
+
+- Environment and algorithms
+- Independent variables
+- Dependent variables
+- Controlled variables
+- Evaluation methodology
+
+# 5. Results
+
+Quantitative results, tables, plots and links to raw data.
+
+# 6. Analysis
+
+Explanation of observed behaviour, unexpected findings, comparisons with
+theoretical predictions and alternative explanations.
+
+# 7. Conclusion
+
+What did we learn? Was the hypothesis supported? What remains uncertain?
+
+# 8. Limitations
+
+Potential confounding factors, methodological weaknesses and limits to
+generalizability.
+
+# 9. Follow-up experiments
+
+New research questions arising from the results.
+
+# 10. References
+
+Relevant papers, theoretical results and previous experiments.
+```
+
+Create the file with the experiment; before a run, mark evidence sections as
+not yet available rather than inheriting a parent’s results. After an
+authorized run, add links to the experiment’s committed code and artifacts
+using paths relative to `experiment.md`.
+
 ## CLI
 
 ```

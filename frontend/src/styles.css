@@ -516,6 +516,13 @@ button:hover {
   border-top: 1px solid var(--border);
 }
 
+.markdown-preview .katex-display {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.35em 0;
+}
+
 /* Smaller screens: simple stacked layout. */
 @media (max-width: 900px) {
   .app__main {
