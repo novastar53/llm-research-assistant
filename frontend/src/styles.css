@@ -81,6 +81,12 @@ body {
   gap: 8px;
 }
 
+.search-box { display: flex; align-items: center; gap: 6px; }
+.search-box__label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.search-box input { width: 220px; padding: 5px 9px; color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: 6px; font: inherit; }
+.search-box input:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent); }
+.search-box__count { color: var(--muted); font-size: 0.78rem; white-space: nowrap; }
+
 .app__main {
   display: flex;
   flex: 1;
@@ -147,6 +153,14 @@ body {
   border-color: var(--accent);
   box-shadow: 0 0 0 2px var(--accent-soft);
 }
+.exp-node--match { border-color: #f5b942; background: color-mix(in srgb, var(--panel) 82%, #f5b942); box-shadow: 0 0 0 3px rgba(245, 185, 66, 0.32), 0 0 18px rgba(245, 185, 66, 0.22); }
+.exp-node--selected.exp-node--match { border-color: #f5b942; box-shadow: 0 0 0 3px rgba(245, 185, 66, 0.32), 0 0 0 5px var(--accent-soft); }
+.exp-node--dimmed { opacity: 0.28; }
+.search-edge--match path { stroke: #f5b942; stroke-width: 2.5; }
+.search-edge--dimmed { opacity: 0.18; }
+.react-flow__node.react-flow-node--search-match { z-index: 10 !important; }
+.react-flow__node.react-flow-node--search-match .exp-node:not(.exp-node--selected) { border-color: #f5b942 !important; background: rgba(245, 185, 66, 0.16) !important; box-shadow: 0 0 0 3px rgba(245, 185, 66, 0.32), 0 0 18px rgba(245, 185, 66, 0.22) !important; }
+.react-flow__node.react-flow-node--search-dimmed { opacity: 0.28; }
 
 .exp-node__title {
   font-weight: 600;
