@@ -1,13 +1,81 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { api, isAbortError, isImagePath, toApiError } from './api'
+import { buildFileTree, directoryPaths } from './fileTree'
 import { isMarkdownPath, renderMarkdown } from './markdown'
 import type { Revision } from './state'
 import type { ApiError, FileEntry, FileListing, TextFile } from './types'
+import type { FileTreeNode } from './fileTree'
 
 interface FilePanelProps {
   experimentId: string
   revision: Revision
+}
+
+interface FileTreeListProps {
+  nodes: FileTreeNode[]
+  expandedDirectories: Set<string>
+  onToggleDirectory: (path: string) => void
+  onOpenFile: (entry: FileEntry) => void
+  selectedPath: string | null
+  depth?: number
+}
+
+function FileTreeList({
+  nodes,
+  expandedDirectories,
+  onToggleDirectory,
+  onOpenFile,
+  selectedPath,
+  depth = 0,
+}: FileTreeListProps) {
+  return (
+    <ul className="file-tree" role={depth === 0 ? 'tree' : 'group'}>
+      {nodes.map((node) => {
+        const paddingLeft = `${8 + depth * 16}px`
+        if (node.kind === 'directory') {
+          const expanded = expandedDirectories.has(node.path)
+          return (
+            <li key={node.path} role="treeitem" aria-expanded={expanded}>
+              <button
+                className="file-tree__directory"
+                style={{ paddingLeft }}
+                onClick={() => onToggleDirectory(node.path)}
+              >
+                <span className="file-tree__chevron" aria-hidden="true">
+                  {expanded ? '▾' : '▸'}
+                </span>
+                {node.name}
+              </button>
+              {expanded && (
+                <FileTreeList
+                  nodes={node.children}
+                  expandedDirectories={expandedDirectories}
+                  onToggleDirectory={onToggleDirectory}
+                  onOpenFile={onOpenFile}
+                  selectedPath={selectedPath}
+                  depth={depth + 1}
+                />
+              )}
+            </li>
+          )
+        }
+        const { entry } = node
+        return (
+          <li key={entry.path} role="treeitem">
+            <button
+              className={`file-tree__file${selectedPath === entry.path ? ' file-tree__file--active' : ''}`}
+              style={{ paddingLeft }}
+              onClick={() => onOpenFile(entry)}
+            >
+              {node.name}
+            </button>
+            {entry.kind !== 'file' && <span className="badge">{entry.kind}</span>}
+          </li>
+        )
+      })}
+    </ul>
+  )
 }
 
 /**
@@ -24,7 +92,10 @@ export function FilePanel({ experimentId, revision }: FilePanelProps) {
   const [preview, setPreview] = useState<TextFile | null>(null)
   const [imagePreview, setImagePreview] = useState<{ path: string; url: string } | null>(null)
   const [previewError, setPreviewError] = useState<ApiError | null>(null)
+  const [expandedDirectories, setExpandedDirectories] = useState<Set<string>>(() => new Set())
   const previewAbort = useRef<AbortController | null>(null)
+  const tree = useMemo(() => buildFileTree(listing?.files ?? []), [listing])
+  const directories = useMemo(() => directoryPaths(tree), [tree])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -33,6 +104,7 @@ export function FilePanel({ experimentId, revision }: FilePanelProps) {
     setPreview(null)
     setImagePreview(null)
     setPreviewError(null)
+    setExpandedDirectories(new Set())
     api
       .files(experimentId, commit, controller.signal)
       .then(setListing)
@@ -78,6 +150,17 @@ export function FilePanel({ experimentId, revision }: FilePanelProps) {
       })
   }
 
+  const toggleDirectory = (path: string) => {
+    setExpandedDirectories((current) => {
+      const next = new Set(current)
+      if (next.has(path)) next.delete(path)
+      else next.add(path)
+      return next
+    })
+  }
+
+  const selectedPath = preview?.path ?? imagePreview?.path ?? null
+
   return (
     <section className="file-panel">
       <h3>Files</h3>
@@ -91,19 +174,21 @@ export function FilePanel({ experimentId, revision }: FilePanelProps) {
           {listing.files.length} files @ {listing.commit.slice(0, 12)}
         </p>
       )}
-      <ul className="file-list">
-        {listing?.files.map((entry) => (
-          <li key={entry.path}>
-            <button
-              className={`link-button${preview?.path === entry.path ? ' link-button--active' : ''}`}
-              onClick={() => openFile(entry)}
-            >
-              {entry.path}
-            </button>
-            {entry.kind !== 'file' && <span className="badge">{entry.kind}</span>}
-          </li>
-        ))}
-      </ul>
+      <div className="file-tree-panel">
+        {directories.length > 0 && (
+          <div className="file-tree__actions">
+            <button onClick={() => setExpandedDirectories(new Set(directories))}>Expand all</button>
+            <button onClick={() => setExpandedDirectories(new Set())}>Collapse all</button>
+          </div>
+        )}
+        <FileTreeList
+          nodes={tree}
+          expandedDirectories={expandedDirectories}
+          onToggleDirectory={toggleDirectory}
+          onOpenFile={openFile}
+          selectedPath={selectedPath}
+        />
+      </div>
 
       <h3>Text preview</h3>
       {previewError && (

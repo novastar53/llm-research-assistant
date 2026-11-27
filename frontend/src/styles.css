@@ -308,6 +308,75 @@ button:hover {
   padding: 0;
 }
 
+.file-tree-panel {
+  max-height: 300px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.file-tree__actions {
+  display: flex;
+  gap: 6px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.file-tree__actions button {
+  padding: 2px 7px;
+  font-size: 0.72rem;
+}
+
+.file-tree {
+  list-style: none;
+  margin: 0;
+  padding: 3px 0;
+}
+
+.file-tree li {
+  position: relative;
+}
+
+.file-tree__directory,
+.file-tree__file {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  border: none;
+  border-radius: 0;
+  background: none;
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-tree__directory {
+  font-weight: 600;
+}
+
+.file-tree__directory:hover,
+.file-tree__file:hover {
+  background: var(--accent-soft);
+  border: none;
+}
+
+.file-tree__file--active {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.file-tree__chevron {
+  display: inline-block;
+  width: 16px;
+  color: var(--muted);
+}
+
 .inspector__relations li,
 .file-list li {
   padding: 2px 0;
