@@ -39,21 +39,21 @@ export function layoutGraph(graph: Graph): PositionedNode[] {
     return depth
   }
 
-  const xCoordinates = new Map<string, number>()
+  const yCoordinates = new Map<string, number>()
   let nextLeaf = 0
   const place = (id: string): number => {
     const descendants = children.get(id) ?? []
     const positions = descendants.map(place)
-    const x = positions.length ? (positions[0] + positions[positions.length - 1]) / 2 : nextLeaf++ * H_GAP
-    xCoordinates.set(id, x)
-    return x
+    const y = positions.length ? (positions[0] + positions[positions.length - 1]) / 2 : nextLeaf++ * V_GAP
+    yCoordinates.set(id, y)
+    return y
   }
   for (const id of ids) if (!parents.has(id)) place(id)
 
   return ids.map((id) => ({
     id,
     depth: depthOf(id),
-    x: xCoordinates.get(id)!,
-    y: depthOf(id) * V_GAP,
+    x: depthOf(id) * H_GAP,
+    y: yCoordinates.get(id)!,
   }))
 }

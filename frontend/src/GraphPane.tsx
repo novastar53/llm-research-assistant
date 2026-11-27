@@ -13,13 +13,13 @@ export type ExperimentFlowNode = Node<
 function ExperimentNode({ data, selected }: NodeProps<ExperimentFlowNode>) {
   return (
     <div className={`exp-node${selected ? ' exp-node--selected' : ''}`}>
-      <Handle type="target" position={Position.Top} />
+      <Handle type="target" position={Position.Left} />
       <div className="exp-node__title">{data.title}</div>
       <div className="exp-node__id">{data.expId}</div>
       <div className="exp-node__commit" title={`commit ${data.commit}`}>
         {data.commit.slice(0, 12)}
       </div>
-      <Handle type="source" position={Position.Bottom} />
+      <Handle type="source" position={Position.Right} />
     </div>
   )
 }
